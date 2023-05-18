@@ -2,7 +2,7 @@
 
 This is a CRUD (Create, Read, Update, Delete) application built with Next.js and the public API from JSONPlaceholder.
 
-I have already deployed this project using Vercel, so it can also be accessed through this link: https://test-pt-imp.vercel.app/
+I have already deployed this project using Vercel, so it can also be accessed through this link: https://test-imp-studio-fe.vercel.app/
 
 ## Prerequisites
 
