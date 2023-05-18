@@ -14,9 +14,16 @@ import {
   FormErrorMessage,
   Textarea,
   Select,
+  Spinner,
 } from "@chakra-ui/react";
 
-const ModalEditPost = ({ isOpen, onClose, handleEditPost, hookForm }) => {
+const ModalEditPost = ({
+  isOpen,
+  onClose,
+  handleEditPost,
+  hookForm,
+  isLoading,
+}) => {
   const {
     register,
     handleSubmit,
@@ -24,12 +31,27 @@ const ModalEditPost = ({ isOpen, onClose, handleEditPost, hookForm }) => {
   } = hookForm;
 
   return (
-    <Modal isCentered isOpen={isOpen} onClose={onClose}>
+    <Modal
+      isCentered
+      isOpen={isOpen}
+      onClose={() => {
+        hookForm.reset();
+        onClose();
+      }}
+    >
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Edit Post</ModalHeader>
         <ModalCloseButton />
-        <form onSubmit={handleSubmit(handleEditPost)}>
+        <form
+          onSubmit={
+            isLoading
+              ? (e) => {
+                  e.preventDefault();
+                }
+              : handleSubmit(handleEditPost)
+          }
+        >
           <ModalBody>
             <FormControl mb={5} isInvalid={errors.title}>
               <FormLabel>User ID</FormLabel>
@@ -71,9 +93,18 @@ const ModalEditPost = ({ isOpen, onClose, handleEditPost, hookForm }) => {
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost">Cancel</Button>
-            <Button type="submit" colorScheme="whatsapp" mr={3}>
-              Save
+            <Button
+              variant="ghost"
+              onClick={() => {
+                hookForm.reset();
+                onClose();
+              }}
+              mr={2}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" colorScheme="yellow" mr={3}>
+              {isLoading ? <Spinner /> : "Edit"}
             </Button>
           </ModalFooter>
         </form>

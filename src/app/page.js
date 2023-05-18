@@ -181,12 +181,14 @@ export default function Home() {
           onClose={handleModalCreate}
           handleAddPost={handleAddPost}
           hookForm={reactHookForm}
+          isLoading={createPost.isLoading}
         />
         <ModalEditPost
           isOpen={isModalEdit}
           onClose={handleModalEdit}
           handleEditPost={handleEditPost}
           hookForm={reactHookForm}
+          isLoading={editPost.isLoading}
         />
         <DrawerDetail
           isOpen={isDrawerOpen}

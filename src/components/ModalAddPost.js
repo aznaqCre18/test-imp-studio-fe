@@ -14,9 +14,16 @@ import {
   FormErrorMessage,
   Textarea,
   Select,
+  Spinner,
 } from "@chakra-ui/react";
 
-const ModalAddPost = ({ isOpen, onClose, handleAddPost, hookForm }) => {
+const ModalAddPost = ({
+  isOpen,
+  onClose,
+  handleAddPost,
+  hookForm,
+  isLoading,
+}) => {
   const {
     register,
     handleSubmit,
@@ -24,12 +31,27 @@ const ModalAddPost = ({ isOpen, onClose, handleAddPost, hookForm }) => {
   } = hookForm;
 
   return (
-    <Modal isCentered isOpen={isOpen} onClose={onClose}>
+    <Modal
+      isCentered
+      isOpen={isOpen}
+      onClose={() => {
+        hookForm.reset();
+        onClose();
+      }}
+    >
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Create Post</ModalHeader>
         <ModalCloseButton />
-        <form onSubmit={handleSubmit(handleAddPost)}>
+        <form
+          onSubmit={
+            isLoading
+              ? (e) => {
+                  e.preventDefault();
+                }
+              : handleSubmit(handleAddPost)
+          }
+        >
           <ModalBody>
             <FormControl mb={5} isInvalid={errors.title}>
               <FormLabel>User ID</FormLabel>
@@ -71,9 +93,18 @@ const ModalAddPost = ({ isOpen, onClose, handleAddPost, hookForm }) => {
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost">Cancel</Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                hookForm.reset();
+                onClose();
+              }}
+              marginRight={2}
+            >
+              Cancel
+            </Button>
             <Button type="submit" colorScheme="whatsapp" mr={3}>
-              Submit
+              {isLoading ? <Spinner /> : "Submit"}
             </Button>
           </ModalFooter>
         </form>
