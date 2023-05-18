@@ -16,7 +16,7 @@ I have already deployed this project using Vercel, so it can also be accessed th
 - open your terminal or cmd
 - and then run this command :
 
-    > git clone https://github.com/aznaqCre18/test-pt-imp.git
+    > git clone https://github.com/aznaqCre18/test-imp-studio-fe
 
 2. Install dependencies
     go to project directory, and run this command
