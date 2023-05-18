@@ -1,95 +1,175 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+'use client'
+
+import SkeletonLoading from '@/components/SkeletonLoading';
+import TablePost from '@/components/TablePost';
+import { createPostData, deletePostData, editPostData, fetchPostData } from '@/utils';
+import { Text, Box, Button, Flex, Container } from '@chakra-ui/react';
+import { useQuery, useMutation } from 'react-query';
+import { initialTablePost } from '@/utils/tablePost';
+import ModalDelete from '@/components/ModalDelete';
+import { useEffect, useState } from 'react';
+import ModalAddPost from '@/components/ModalAddPost';
+import { useForm } from 'react-hook-form';
+import { DevTool } from '@hookform/devtools';
+import ModalEditPost from '@/components/ModalEditPost';
+import { useRouter } from 'next/navigation';
+import DrawerDetail from './../components/DrawerDetail';
 
 export default function Home() {
+  // REACT HOOK FORM INIT
+  const reactHookForm = useForm();
+
+
+  // STATE
+  const [dataPost, setDataPost] = useState([]);
+  const [isModalDelete, setIsModalDelete] = useState(false);
+  const [isModalCreate, setIsModalCreate] = useState(false);
+  const [isModalEdit, setIsModalEdit] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [dataDeleteSelected, setDataDeleteSelected] = useState({});
+  const [dataEditSelected, setDataEditSelected] = useState({});
+  const [dataDetailSelected, setDataDetailSelected] = useState({});
+
+  // HANDLE FETCH REACT QUERY
+  const { isLoading, data, isError, error } = useQuery('post-data', fetchPostData);
+  const createPost = useMutation({
+    mutationFn: (payload) => createPostData(payload),
+    onSuccess: newPost => {
+      let tempData = dataPost;
+      tempData.unshift(newPost.data);
+      setDataPost(tempData);
+      reactHookForm.reset();
+      setIsModalCreate(!isModalCreate);
+    }
+  });
+
+  const editPost = useMutation({
+    mutationFn: (data) => editPostData(data),
+    onSuccess: newPost => {
+      console.log(newPost);
+      const index = dataPost.findIndex(x => x.id === newPost.data.id);
+      let changeData = {
+        ...dataPost[index],
+        title: newPost.data.title,
+        body: newPost.data.body,
+        userId: newPost.data.userId,
+      }
+
+      let tempDataPost = dataPost;
+      tempDataPost[index] = changeData;
+
+      console.log(tempDataPost, "<<< TEMPDATA");
+
+      setDataPost(tempDataPost);
+      reactHookForm.reset();
+      setIsModalEdit(!isModalEdit);
+    }
+  });
+
+  const deletePost = useMutation((id) => deletePostData(id));
+
+  // EFFECT
+  useEffect(() => {
+    setDataPost(data ? data.data : [])
+  }, [data])
+  
+  // FUNCTION MODAL
+  const handleModalCreate = () => {
+    setIsModalCreate(!isModalCreate);
+  }
+
+  const handleAddPost = () => {
+    const { getValues } = reactHookForm;
+    const payload = {
+      title: getValues('title'),
+      body: getValues('body'),
+      userId: Number(getValues('userId')),
+    }
+    createPost.mutate(payload);
+  }
+
+  const handleModalEdit = () => {
+    setIsModalEdit(!isModalEdit);
+  }
+
+  const handleEditPost = () => {
+    const { getValues } = reactHookForm;
+
+    const id = dataEditSelected.id;
+    const payload = {
+      title: getValues('title'),
+      body: getValues('body'),
+      userId: Number(getValues('userId')),
+    }
+
+    console.log(id, payload);
+    editPost.mutate({id, payload});
+  }
+
+  const handleModalDelete = () => {
+    setIsModalDelete(!isModalDelete)
+  }
+  
+  const router = useRouter();
+  const actionRow = (type, data) => {
+    const { setValue } = reactHookForm;
+
+    if (type === 'delete') {
+      setDataDeleteSelected(data);
+      setIsModalDelete(!isModalDelete);
+    } else if (type === 'edit') {
+      setValue('title', data.title);
+      setValue('userId', data.userId);
+      setValue('body', data.body);
+
+      setDataEditSelected(data);
+      setIsModalEdit(!isModalEdit);
+    } else if (type === 'detail') {
+      if (Number(data.id) > 100) {
+        setDataDetailSelected({ title: data.title, body: data.body });
+        setIsDrawerOpen(!isDrawerOpen);
+      } else {
+        router.push(`/post-detail/${data.id}`);
+      }
+    }
+  }
+
+  const handleDeletePost = () => {
+    deletePost.mutate(dataDeleteSelected.id);
+    setDataPost(dataPost.filter(x => x.id !== dataDeleteSelected.id));
+    setIsModalDelete(!isModalDelete);
+  }
+
+  const handleOpenDrawer = () => {
+    setIsDrawerOpen(!isDrawerOpen);
+  }
+ 
+  // PAGE CONDITION
+  if (isLoading) {
+    return (
+      <SkeletonLoading />
+    )
+  }
+
+  if (isError) {
+    return (
+      <Text fontSize='4xl'>{error.message}</Text>
+    )
+  }
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    <Container maxW="4.xl" p={4}>
+      <Box p={24}>
+        <Text mb={20} style={{ textAlign: 'center' }} fontSize='4xl'>POSTS JSON PLACEHOLDER</Text>
+        <Flex justify='end' mb={10}><Button onClick={handleModalCreate} colorScheme='whatsapp'>CREATE POST</Button></Flex>
+        <TablePost columns={initialTablePost(actionRow)} data={dataPost.length > 0 ? dataPost : []} />
+        <ModalDelete isOpen={isModalDelete} handleDelete={handleDeletePost} onOpen={handleModalDelete} />
+        <ModalAddPost isOpen={isModalCreate} onClose={handleModalCreate} handleAddPost={handleAddPost} hookForm={reactHookForm} />
+        <ModalEditPost isOpen={isModalEdit} onClose={handleModalEdit} handleEditPost={handleEditPost} hookForm={reactHookForm} />
+        <DrawerDetail isOpen={isDrawerOpen} onClose={handleOpenDrawer} title={dataDetailSelected.title} body={dataDetailSelected.body} />
+        
+        <DevTool control={reactHookForm.control} />
+      </Box>
+    </Container>
   )
 }
