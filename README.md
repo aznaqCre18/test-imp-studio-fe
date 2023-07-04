@@ -35,3 +35,4 @@ I have already deployed this project using Vercel, so it can also be accessed th
 - React Query
 - Chakra UI
 - React Hook Form
+- Axios
